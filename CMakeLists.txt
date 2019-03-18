@@ -1,7 +1,7 @@
 # root
 PROJECT(vangers)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1.0)
 
 # modules
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -16,6 +16,13 @@ OPTION(DIAGEN_TEST "Dialog generator and test subsystem" OFF)
 OPTION(ACTINT "Actint user interface in road game" ON) 
 
 SET(CMAKE_CONFIGURATION_TYPES "Release;Debug;MinSizeRel;RelWithDebInfo")
+IF(MINGW)
+		SET(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
+ENDIF()
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # depends
 FIND_PACKAGE(SDL2 REQUIRED)
@@ -25,30 +32,10 @@ FIND_PACKAGE(Vorbis REQUIRED)
 FIND_PACKAGE(VorbisFile REQUIRED)
 
 FIND_PACKAGE(Clunk REQUIRED)
-if (MINGW)
-	ADD_DEFINITIONS(-I/local/include/)
-	ADD_DEFINITIONS(-L/local/lib/)
-	#set(SDL_net_INCLUDE_DIR "/local/include/SDL")
-	ADD_DEFINITIONS(-I/local/include/SDL2)
-	#set(SDLNET_LIBRARY "/local/bin/SDL_net.dll")
-	
-	set(FFMPEG_INCLUDE_DIRS "/local/include/libavcodec /local/include/libavformat")
-	ADD_DEFINITIONS(-I/local/include/libavcodec -I/local/include/libavformat)
-	set(FFMPEG_LIBRARIES "/local/bin/avutil-52.dll" "/local/bin/avformat-54.dll" "/local/bin/avcodec-54.dll")
-	set(ZLIB_LIBRARIES "/local/lib/zlib1.dll")
-	
-	set(CLUNK_INCLUDE_DIR "/local/include/clunk")
-	ADD_DEFINITIONS(-I/local/include/clunk)
-	set(CLUNK_LIBRARY "/local/lib/libclunk.dll")
-	set(WINDOWS_RES "../vangers.res")
-	ADD_DEFINITIONS(-Wl,-subsystem,windows)
-else (MINGW)
-	FIND_PACKAGE(FFMPEG REQUIRED)
-	FIND_PACKAGE(ZLIB REQUIRED)
-	set(WINDOWS_RES "")
-endif (MINGW)
 
-
+FIND_PACKAGE(FFMPEG REQUIRED)
+FIND_PACKAGE(ZLIB REQUIRED)
+set(WINDOWS_RES "../vangers.res")
 
 IF(RUSSIAN_VERSION)
 	ADD_DEFINITIONS(-DRUSSIAN_VERSION)
@@ -70,8 +57,18 @@ IF(DIAGEN_TEST)
 	ADD_DEFINITIONS(-DDIAGEN_TEST)
 ENDIF(DIAGEN_TEST)
 
+IF(STEAM)
+	ADD_DEFINITIONS(-D_STEAM_API_)
+	SET(STEAM_INCLUDE_DIR /c/projects/sdk/public)
+	SET(STEAM_LIBS
+		/c/projects/sdk/redistributable_bin/steam_api.dll
+
+	)
+ENDIF(STEAM)
+
 # globals
 INCLUDE_DIRECTORIES(SYSTEM
+	${ZLIB_INCLUDE_DIR}
 	${SDL2_INCLUDE_DIR}
 	${SDL2_NET_INCLUDE_DIR}
 	${FFMPEG_INCLUDE_DIRS}
@@ -79,17 +76,16 @@ INCLUDE_DIRECTORIES(SYSTEM
 	${OGG_INCLUDE_DIR}
 	${VORBIS_INCLUDE_DIR}
 	${VORBISFILE_INCLUDE_DIR}
-	/usr/local/include
+	${STEAM_INCLUDE_DIR}
 )
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wno-unused-parameter")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -msse2")
+# For modern gcc
+add_definitions(-D_USE_MATH_DEFINES)
 
 IF (NOT MINGW)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftree-vectorize -ffast-math")
 ENDIF (NOT MINGW)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
-
-
 
 # subdirs
 ADD_SUBDIRECTORY("src")

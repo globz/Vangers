@@ -18,7 +18,7 @@
 #undef SHOW_LOGOS
 #endif
 
-#include "../lib/xsound/_xsound.h"
+#include "_xsound.h"
 
 #include "runtime.h"
 
@@ -130,7 +130,7 @@ void iPreInitFirst();
 
 /* --------------------------- PROTOTYPE SECTION --------------------------- */
 void ShowImageMousePress(int fl, int x, int y);
-void ShowImageKeyPress(int k);
+void ShowImageKeyPress(SDL_Event *k);
 void ComlineAnalyze(int argc,char** argv);
 void restore(void);
 int NetInit(ServerFindChain* p);
@@ -168,7 +168,7 @@ int MLquant(void);
 void aciLoadData(void);
 void aInit(void);
 void aRedraw(void);
-void aKeyTrap(int k);
+void aKeyTrap(SDL_Event *k);
 void actIntQuant(void);
 void aciPrepareMenus(void);
 int acsQuant(void);
@@ -187,9 +187,10 @@ void aci_LocationQuantPrepare(void);
 void aci_LocationQuantFinit(void);
 #endif
 
-void KeyCenter(int key);
+void KeyCenter(SDL_Event *key);
 int distance(int,int);
 extern int ibsout(int,int,void*,void*);
+int sdlEventToCode(SDL_Event *event);
 
 /* --------------------------- DEFINITION SECTION -------------------------- */
 
@@ -808,7 +809,7 @@ void LoadingRTO1::Init(int id)
 	YSIZE = 2*YSIDE;
 #endif
 
-	set_key_nadlers(&KeyCenter,NULL);
+	set_key_nadlers(&KeyCenter, NULL);
 
 	graph3d_init();
 
@@ -1096,7 +1097,6 @@ _MEM_STATISTIC_("AFTER GAME QUANT INIT -> ");
 
 int GameQuantRTO::Quant(void)
 {
-
 	int ret = 0;
 	if(Pause <= 1 || NetworkON){
 		if(Pause) Pause++;
@@ -1567,20 +1567,20 @@ void creat_poster() {
 	SDL_SaveBMP(surface, "./poster.bmp");
 }
 
-void KeyCenter(int key)
+void KeyCenter(SDL_Event *key)
 {
 	extern int entry_scan_code;
 	SDL_Keymod mod;
 
-	if(aciKeyboardLocked){
+	if(aciKeyboardLocked) {
 #ifdef ACTINT
 		aKeyTrap(key);
 #endif
 		return;
 	}
 
-	entry_scan_code = key;
-	switch(key){
+	entry_scan_code = sdlEventToCode(key);
+	switch(entry_scan_code) {
 		case SDL_SCANCODE_ESCAPE:
 #ifdef ESCAPE_EXIT
 			disconnect_from_server();
@@ -1612,13 +1612,13 @@ void KeyCenter(int key)
 			shotFlush();
 			break;
 #endif
-		case 'T':
+		case SDL_SCANCODE_T:
 			mod = SDL_GetModState();
 			if ((mod&KMOD_SHIFT)||(mod&KMOD_CTRL)) {
 				GameTimerON_OFF();
 			}
 			break;
-		case 'F':
+		case SDL_SCANCODE_F:
 			mod = SDL_GetModState();
 			if (mod&KMOD_CTRL) {
 				curGMap -> prmFlag ^= PRM_FPS;
@@ -1890,7 +1890,6 @@ void iGameMap::flush()
 
 void iGameMap::draw(int self)
 {
-	//XGR_Flip();
 	static XBuffer status;
 	static int blink,clcnt;
 	
@@ -2002,7 +2001,6 @@ void iGameMap::draw(int self)
 				sysfont.drawtext(xc - xside + 3,yc + yside - 60,status.address(),255,-1);
 			#endif
 		}
-
 
 		switch(message_mode % 3){
 			case 0:
@@ -2129,9 +2127,9 @@ void ShowImageRTO::Init(int id)
 	char* pname;
 
 	//NEED SEE
-	set_key_nadlers(&ShowImageKeyPress,NULL);
-	XGR_MouseSetPressHandler(XGM_LEFT_BUTTON,ShowImageMousePress);
-	XGR_MouseSetPressHandler(XGM_RIGHT_BUTTON,ShowImageMousePress);
+	set_key_nadlers(&ShowImageKeyPress, NULL);
+	XGR_MouseSetPressHandler(XGM_LEFT_BUTTON, ShowImageMousePress);
+	XGR_MouseSetPressHandler(XGM_RIGHT_BUTTON, ShowImageMousePress);
 
 	XBuf -> init();
 	if(!(Flags[curFile] & IMG_RTO_NO_IMAGE)){
@@ -2758,7 +2756,7 @@ void ShowImageMousePress(int fl, int x, int y)
 	ShowImageMouseFlag = 1;
 }
 
-void ShowImageKeyPress(int k)
+void ShowImageKeyPress(SDL_Event *k)
 {
 	ShowImageKeyFlag = 1;
 }

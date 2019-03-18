@@ -747,7 +747,11 @@ void uniVangPrepare(void){
 			break;
 		case PASSEMBLOSS:
 			aciUpdateCurCredits(my_server_data.Passembloss.InitialCash);
-			CurrentWorld = my_server_data.Passembloss.RandomEscave;
+//			CurrentWorld = my_server_data.Passembloss.RandomEscave;
+			if (my_server_data.Passembloss.RandomEscave == 255 || my_server_data.Passembloss.RandomEscave == -1)
+				uvsRandomWorld = my_server_data.Passembloss.RandomEscave;
+			else
+				CurrentWorld = my_server_data.Passembloss.RandomEscave;
 			break;
 		case HUNTAGE:
 			aciUpdateCurCredits(my_server_data.Huntage.InitialCash);
@@ -4433,8 +4437,8 @@ void uvsVanger::break_harvest(void){
 	pg = Pworld -> escT[0] -> Pbunch -> cycleTable[Pworld -> escT[0] -> Pbunch -> currentStage].Pgame;
 
 	if (!pg) {
-		return;
 		ErrH.Abort("uvsVanger::break_harvest : don't now where go ");
+		return;
 	}
 
 	if (pg -> typeTownEnd == UVS_TOWN::SPOT){
@@ -10224,7 +10228,7 @@ int uvsgetDGdata(int code){
 			break;
 		case DG_EXTERNS::HERE_PIPKA:
 			return (uvsReturnTreasureStatus(UVS_ITEM_TYPE::PIPKA, uvsTreasureInShop) ||
-				uvsReturnTreasureStatus(UVS_ITEM_TYPE::PIPKA, uvsTreasureInShop));
+				uvsReturnTreasureStatus(UVS_ITEM_TYPE::PIPKA, 0));
 			break;
 		case DG_EXTERNS::HERE_PEREPONKA:
 			return (uvsReturnTreasureStatus(UVS_ITEM_TYPE::PEREPONKA, uvsTreasureInShop) ||
